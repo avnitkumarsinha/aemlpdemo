@@ -9,7 +9,8 @@
         <link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" rel="stylesheet">
     </head>
     <body>
-        
+        <!-- Liveperson agent widget sdk -->
+        <script type="text/javascript" src="https://lpcdn.lpsnmedia.net/webagent/client-SDK.min.js"></script>
         <nav class="navbar navbar-expand-lg navbar-light text-capitalize">
             <div class="container">
                 <a class="navbar-brand" href="#"><img src="https://cdn.tmobile.com/content/dam/t-mobile/ntm/branding/logos/corporate/tmo-logo-v3.svg" alt="#" /></a>
@@ -29,13 +30,18 @@
        
         <script src="js/jquery-3.3.1.min.js"></script>
         <script src="js/bootstrap.min.js"></script>
-        <!-- Liveperson agent widget sdk -->
-        <script type="text/javascript" src="https://lpcdn.lpsnmedia.net/webagent/client-SDK.min.js"></script>
 		<div class="container mt-1">
-        <p>Click <a href="other.html">here</a> to access the messaging session data.</p>
-            <h4>Hello, agent.</h4>
-            <div id="lines"></div>
+        <p>Click <a href="index.html">here</a> to access the first page.</p>
+            <h4>Data Page</h4>
             <div id="error"></div>
+            <table id="data" class="table table-bordered">
+                <tr>
+                    <th>Campaign Name</th>
+                    <th>Campaign Description</th>
+                </tr>
+            </table>
+            <ul class="list-group" id="leadGen">
+            </ul>
 
             <!-- Optional JavaScript -->
             <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -55,14 +61,27 @@
                     // If there's an existing value when bind is called - this callback
                     // will be called with the existing value
                     for (let i = 0; i < value.length; i++){
-                        //filter based on the text being from the visitor and ending with a question mark
-                        if( value[i].source == "visitor" && value[i].text.substr(-1) == "?"){
-                            let temp = document.createElement("p");
-                            temp.appendChild(document.createTextNode(value[i].text));
-                            document.querySelector("#lines").appendChild(temp);
-                        }
+                        let tempRow = document.createElement("tr");
+                        ["id", "topic"].forEach(function(key){
+                            let tempCell = document.createElement("td");
+                            tempCell.appendChild(document.createTextNode(value[i][key]));
+                            tempRow.appendChild(tempCell);
+                        });
+                        document.querySelector("table#data").appendChild(tempRow);
                     }
                 };
+                
+                var customCallback = function(data){
+                    // Do something with the returning data
+                    var path = data.key;
+                    var value = data.newValue;
+                    for (let i = 0; i < value.length; i++){
+                        let temp = document.createElement("li");
+                        temp.classList.add("list-group-item");
+                        temp.appendChild(document.createTextNode(JSON.stringify(value[i])));
+                        document.querySelector("ul#leadGen").appendChild(temp);
+                    }
+                }
 
                 var notifyWhenDone = function(err) {
                     if (err) {
@@ -73,11 +92,14 @@
                     // or when the action terminated with an error.
                 };
 
-                var pathToData = "chatTranscript.lines";
+                var pathToData = "SDE.serviceActivity";
+                var customData = "SDE.leadGeneration";
 
                 lpTag.agentSDK.bind(pathToData, updateCallback, notifyWhenDone);
+                lpTag.agentSDK.bind(customData, customCallback, notifyWhenDone);
                 
             </script>
         </div>
+        
     </body>
 </html>
